@@ -15,7 +15,7 @@ namespace UrlShortener.Controllers
         private readonly IUrlRepository _urlRepository;
         private readonly DapperContext _dapperContext;
 
-        public UrlController(IUrlRepository urlRepository,DapperContext dapperContext)
+        public UrlController(IUrlRepository urlRepository, DapperContext dapperContext)
         {
             _urlRepository = urlRepository;
             _dapperContext = dapperContext;
@@ -24,36 +24,47 @@ namespace UrlShortener.Controllers
         [HttpPost("ShortenUrl")]
         public async Task<IActionResult> ShortenUrl([FromBody] ShortenUrlRequest request)
         {
-            if(!ModelState.IsValid)
+            if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
             var existingUrl = await _urlRepository.GetShortUrlUingLongUrlAsync(request.LongUrl);
             if (existingUrl != null)
             {
-                return Ok(GetShortUrl(existingUrl));
+                return Ok(existingUrl);
             }
 
-            string shortCode = UrlHelper.GenerateUniqueShortCode(_dapperContext);
+            string shortUrl = UrlHelper.GenerateUniqueShortCode(_dapperContext);
+            
 
             var url = new Url
             {
-                LongUrl= request.LongUrl,
-                ShortCode= shortCode,
-                CreationDate=DateTime.Now,
-                IsActive=true
+                LongUrl = request.LongUrl,
+                ShortUrl = shortUrl,
+                CreationDate = DateTime.Now,
+                IsActive = true
             };
 
-            var added =await _urlRepository.ShortenUrlAsync(url);
+            var added = await _urlRepository.ShortenUrlAsync(url);
             if (added == true)
             {
                 return Ok(new ShortenedUrlResponse
                 {
-                    ShortUrl = GetShortUrl(shortCode)
+                    ShortUrl = shortUrl
                 });
             }
             return BadRequest("something wrong");
         }
 
+        [HttpDelete("{shortCode}")]
+        public async Task<IActionResult> DeleteUrl(string shorturl)
+        {
+            var deleted = await _urlRepository.DeleteUrlAsync(shorturl);
+            if (deleted == true)
+            {
+                return Ok("Deleted");
+            }
+            return BadRequest("Not Deleted");
+        }
 
         private string GetShortUrl(string shortCode)
         {

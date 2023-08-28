@@ -8,5 +8,6 @@ namespace UrlShortener.Contracts
     {
         public  Task<string> GetShortUrlUingLongUrlAsync(string Longurl);
         public  Task<bool> ShortenUrlAsync(Url request);
+        public Task<bool> DeleteUrlAsync(string ShortUrl);
     }
 }
