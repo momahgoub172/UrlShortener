@@ -16,8 +16,6 @@ namespace UrlShortener.Helper
             do
             {
                 code = new string(Enumerable.Repeat(chars, 8).Select(c => c[random.Next(c.Length)]).ToArray());
-                code = $"http://localhost/{code}";
-
                 //using dapper
                 var connection = context.CreateConnection();
                  existingCode = connection.ExecuteScalar<string>("Select ShortUrl from UrlMappings where ShortUrl = @shorturl", new { ShortUrl = code });

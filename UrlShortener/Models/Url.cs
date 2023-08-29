@@ -14,6 +14,9 @@ namespace UrlShortener.Models
         [MaxLength(100)] // Adjust the length as needed
         public string ShortUrl { get; set; }
 
+        [MaxLength(8)]
+        public string ShortCode { get; set; }
+
         public DateTime CreationDate { get; set; } = DateTime.UtcNow;
 
         public DateTime? ExpirationDate { get; set; }

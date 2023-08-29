@@ -26,7 +26,7 @@ namespace UrlShortener.Repository
         public async Task<bool> ShortenUrlAsync(Url request)
         {
 
-            string query = @"INSERT INTO UrlMappings (LongUrl, ShortUrl, CreationDate, IsActive) VALUES (@LongUrl, @ShortUrl, @CreationDate, @IsActive);";
+            string query = @"INSERT INTO UrlMappings (LongUrl, ShortUrl, CreationDate, IsActive, ShortCode) VALUES (@LongUrl, @ShortUrl, @CreationDate, @IsActive , @ShortCode);";
             using var connection = _context.CreateConnection();
             var rowsAffected = await connection.ExecuteAsync(query, request);
             if (rowsAffected > 0)
@@ -46,6 +46,14 @@ namespace UrlShortener.Repository
                 return true;
             else
                 return false;
+        }
+
+        public async Task<Url> GetLongUrlUsingShortUrlAsync(string shortCode)
+        {
+            var query = "Select * from UrlMappings where shortCode = @shortCode";
+            using var connection = _context.CreateConnection();
+            var LongUrl = await connection.QueryAsync<Url>(query, new { shortCode });
+            return LongUrl.FirstOrDefault();
         }
     }
 }

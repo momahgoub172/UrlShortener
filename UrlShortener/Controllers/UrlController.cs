@@ -33,7 +33,8 @@ namespace UrlShortener.Controllers
                 return Ok(existingUrl);
             }
 
-            string shortUrl = UrlHelper.GenerateUniqueShortCode(_dapperContext);
+            string shortCode = UrlHelper.GenerateUniqueShortCode(_dapperContext);
+            string shortUrl = GetShortUrl(shortCode);
             
 
             var url = new Url
@@ -41,7 +42,8 @@ namespace UrlShortener.Controllers
                 LongUrl = request.LongUrl,
                 ShortUrl = shortUrl,
                 CreationDate = DateTime.Now,
-                IsActive = true
+                IsActive = true,
+                ShortCode=shortCode
             };
 
             var added = await _urlRepository.ShortenUrlAsync(url);
@@ -49,13 +51,13 @@ namespace UrlShortener.Controllers
             {
                 return Ok(new ShortenedUrlResponse
                 {
-                    ShortUrl = shortUrl
+                    ShortUrl =shortUrl
                 });
             }
             return BadRequest("something wrong");
         }
 
-        [HttpDelete("{shortCode}")]
+        [HttpDelete("DeleteUrl")]
         public async Task<IActionResult> DeleteUrl(string shorturl)
         {
             var deleted = await _urlRepository.DeleteUrlAsync(shorturl);
@@ -66,9 +68,33 @@ namespace UrlShortener.Controllers
             return BadRequest("Not Deleted");
         }
 
+
+        //[HttpGet("qrcode")]
+        //public IActionResult GenerateQRCode(string shortUrl)
+        //{
+        //   //todo
+        //}
+
+
+        [Route("/{shortCode}")]
+        [HttpGet]
+        public async Task<IActionResult> RedirectUrl(string shortCode)
+        {
+            var url = await _urlRepository.GetLongUrlUsingShortUrlAsync(shortCode);
+            if(url == null)
+                return NotFound();
+            if (url.ExpirationDate.HasValue && url.ExpirationDate < DateTime.UtcNow)
+                return BadRequest("Expired");
+            if(!url.IsActive)
+                return BadRequest("Deactivated");
+
+            return Redirect(url.LongUrl);
+        }
+
+
         private string GetShortUrl(string shortCode)
         {
-            return $"http://localhost/{shortCode}";
+            return $"http://localhost:5262/{shortCode}";
         }
     }
 }
