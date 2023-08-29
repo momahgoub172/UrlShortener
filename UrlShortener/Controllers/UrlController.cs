@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using QRCoder;
+using System.Drawing;
 using UrlShortener.Contracts;
 using UrlShortener.Data;
 using UrlShortener.DTOs;
@@ -69,11 +71,25 @@ namespace UrlShortener.Controllers
         }
 
 
-        //[HttpGet("qrcode")]
-        //public IActionResult GenerateQRCode(string shortUrl)
-        //{
-        //   //todo
-        //}
+        [HttpGet("qrcode/{shortUrl}")]
+        public IActionResult GenerateQRCode(string shortUrl)
+        {
+            QRCodeGenerator qrCodeGenerator = new QRCodeGenerator();
+            QRCodeData qrCodeData = qrCodeGenerator.CreateQrCode(shortUrl, QRCodeGenerator.ECCLevel.Q);
+            QRCode qrCode = new QRCode(qrCodeData);
+
+            //Convert the QR code to a Bitmap
+            Bitmap qrCodeImage = qrCode.GetGraphic(10);
+
+            // Convert the Bitmap to a byte array
+            byte[] imageBytes;
+            using (MemoryStream stream = new MemoryStream())
+            {
+                qrCodeImage.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
+                imageBytes = stream.ToArray();
+            }
+            return File(imageBytes, "image/png");
+        }
 
 
         [Route("/{shortCode}")]
