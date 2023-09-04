@@ -55,5 +55,53 @@ namespace UrlShortener.Repository
             var LongUrl = await connection.QueryAsync<Url>(query, new { shortCode });
             return LongUrl.FirstOrDefault();
         }
+
+        public async Task<bool> ActivateUrl(string ShortUrl)
+        {
+            var query = "Update UrlMappings set IsActive=1 Where shortUrl = @ShortUrl";
+            using var connection = _context.CreateConnection();
+            var rowsAffected = await connection.ExecuteAsync(query,new { ShortUrl });
+            if (rowsAffected > 0)
+                return true;
+            else
+                return false;
+        }
+
+        public async Task<bool> DeactivateUrl(string ShortUrl)
+        {
+            var query = "Update UrlMappings set IsActive=0 Where shortUrl = @ShortUrl";
+            using var connection = _context.CreateConnection();
+            var rowsAffected = await connection.ExecuteAsync(query, new { ShortUrl });
+            if (rowsAffected > 0)
+                return true;
+            else
+                return false;
+        }
+
+        public async Task<IEnumerable<Url>> GetAllActivatedUrls()
+        {
+            var query = "select * from UrlMappings where IsActive=1";
+            using var connection = _context.CreateConnection();
+            return await connection.QueryAsync<Url>(query);
+        }
+
+        public async Task<IEnumerable<Url>> GetAllDeactivatedUrls()
+        {
+            var query = "select * from UrlMappings where IsActive=0";
+            using var connection = _context.CreateConnection();
+            return await connection.QueryAsync<Url>(query);
+        }
+
+        public async Task<bool> UpdateExpiratinDate(string ShortUrl,DateTime NewDate)
+        {
+            var query = "Update UrlMappings set ExpirationDate=@NewDate Where shortUrl = @ShortUrl";
+            using var connection = _context.CreateConnection();
+            var rowsAffected = await connection.ExecuteAsync(query, new {NewDate ,ShortUrl });
+            if (rowsAffected > 0)
+                return true;
+            else
+                return false;
+        }
+
     }
 }

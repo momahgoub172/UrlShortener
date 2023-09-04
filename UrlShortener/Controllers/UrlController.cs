@@ -74,6 +74,7 @@ namespace UrlShortener.Controllers
         [HttpGet("qrcode/{shortUrl}")]
         public IActionResult GenerateQRCode(string shortUrl)
         {
+            //Generate QR Code
             QRCodeGenerator qrCodeGenerator = new QRCodeGenerator();
             QRCodeData qrCodeData = qrCodeGenerator.CreateQrCode(shortUrl, QRCodeGenerator.ECCLevel.Q);
             QRCode qrCode = new QRCode(qrCodeData);
@@ -105,6 +106,47 @@ namespace UrlShortener.Controllers
                 return BadRequest("Deactivated");
 
             return Redirect(url.LongUrl);
+        }
+
+        [HttpPut("activate")]
+        public async Task<IActionResult> ActivateUrl(string shorturl)
+        {
+            var Activated=await _urlRepository.ActivateUrl(shorturl);
+            if (Activated == true)
+                return Ok("Activated");
+            return BadRequest("Not Activated");
+        }
+
+        [HttpPut("deactivate")]
+        public async Task<IActionResult> DeactivateUrl(string shorturl)
+        {
+            var Activated = await _urlRepository.DeactivateUrl(shorturl);
+            if (Activated == true)
+                return Ok("Deactivated");
+            return BadRequest("Not Deactivated");
+        }
+
+
+        [HttpGet("GetAllActivatedUrls")]
+        public async Task<IEnumerable<Url>> GetAllActivatedUrls()
+        {
+          return  await _urlRepository.GetAllActivatedUrls();
+        }
+
+        [HttpGet("GetAllDeactivatedUrls")]
+        public async Task<IEnumerable<Url>> GetAllDeactivatedUrls()
+        {
+            return await _urlRepository.GetAllDeactivatedUrls();
+        }
+
+
+        [HttpPut("UpdateExpiratinDate")]
+        public async Task<IActionResult> UpdateExpiratinDate(string shorturl , DateTime NewDate)
+        {
+            var updated = await _urlRepository.UpdateExpiratinDate(shorturl, NewDate);
+            if (updated == true)
+                return Ok("updated");
+            return BadRequest("Not updated");
         }
 
 
